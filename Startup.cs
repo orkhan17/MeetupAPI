@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MeetupAPI.Entities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -26,10 +27,12 @@ namespace MeetupAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddDbContext<MeetupContext>();
+            services.AddScoped<MeetupSeeder>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, MeetupSeeder meetupSeeder)
         {
             if (env.IsDevelopment())
             {
@@ -46,6 +49,8 @@ namespace MeetupAPI
             {
                 endpoints.MapControllers();
             });
+
+            meetupSeeder.Seed();
         }
     }
 }
