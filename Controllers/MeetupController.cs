@@ -27,7 +27,10 @@ namespace MeetupAPI.Controllers
         [HttpGet]
         public ActionResult<List<MeetupDetailsDto>> Get()
         {
-            var meetups = _meetupContext.Meetups.Include(m => m.Location).ToList();
+            var meetups = _meetupContext.Meetups
+                .Include(m => m.Location)
+                .Include(m => m.Lectures)
+                .ToList();
             var meetupDtos = _mapper.Map<List<MeetupDetailsDto>>(meetups);
             return Ok(meetupDtos);
         }
@@ -37,6 +40,7 @@ namespace MeetupAPI.Controllers
         {
             var meetup = _meetupContext.Meetups
                 .Include(m => m.Location)
+                .Include(m => m.Lectures)
                 .FirstOrDefault(m => m.Name.Replace(" ", "-").ToLower() == name.ToLower());
 
             if (meetup == null)
