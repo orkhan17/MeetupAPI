@@ -4,14 +4,16 @@ using MeetupAPI.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace MeetupAPI.Migrations
 {
     [DbContext(typeof(MeetupContext))]
-    partial class MeetupContextModelSnapshot : ModelSnapshot
+    [Migration("20210210190151_AddUsers")]
+    partial class AddUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,9 +81,6 @@ namespace MeetupAPI.Migrations
                         .HasColumnType("int")
                         .UseIdentityColumn();
 
-                    b.Property<int?>("CreatedById")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
@@ -95,8 +94,6 @@ namespace MeetupAPI.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CreatedById");
 
                     b.ToTable("Meetups");
                 });
@@ -171,15 +168,6 @@ namespace MeetupAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Meetup");
-                });
-
-            modelBuilder.Entity("MeetupAPI.Entities.Meetup", b =>
-                {
-                    b.HasOne("MeetupAPI.Entities.User", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById");
-
-                    b.Navigation("CreatedBy");
                 });
 
             modelBuilder.Entity("MeetupAPI.Entities.User", b =>

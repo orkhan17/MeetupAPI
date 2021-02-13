@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
+using MeetupAPI.Authorization;
 using MeetupAPI.DTOs;
 using MeetupAPI.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,18 +16,22 @@ namespace MeetupAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class MeetupController : ControllerBase
     {
         private readonly MeetupContext _meetupContext;
         private readonly IMapper _mapper;
+        private readonly IAuthorizationService _authorizationService;
 
-        public MeetupController(MeetupContext meetupContext, IMapper mapper)
+        public MeetupController(MeetupContext meetupContext, IMapper mapper, IAuthorizationService authorizationService)
         {
             _meetupContext = meetupContext;
             _mapper = mapper;
+            _authorizationService = authorizationService;
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public ActionResult<List<MeetupDetailsDto>> Get()
         {
             var meetups = _meetupContext.Meetups
@@ -36,6 +43,8 @@ namespace MeetupAPI.Controllers
         }
 
         [HttpGet("{name}")]
+        //[Authorize(Policy = "HasNationality")]
+        [Authorize(Policy = "AtLeast18")]
         public ActionResult<MeetupDetailsDto> Get(string name)
         {
             var meetup = _meetupContext.Meetups
@@ -53,6 +62,7 @@ namespace MeetupAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Moderator")]
         public ActionResult Post([FromBody]MeetupDto model)
         {
             if(!ModelState.IsValid)
@@ -60,6 +70,11 @@ namespace MeetupAPI.Controllers
                 return BadRequest(ModelState);
             }
             var meetup = _mapper.Map<Meetup>(model);
+
+            var userId = User.FindFirst(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+            meetup.CreatedById = int.Parse(userId);
+
             _meetupContext.Meetups.Add(meetup);
             _meetupContext.SaveChanges();
 
@@ -77,6 +92,13 @@ namespace MeetupAPI.Controllers
             if (meetup == null)
             {
                 return NotFound();
+            }
+
+            var authorizationResult = _authorizationService.AuthorizeAsync(User, meetup, new ResourceOperationRequirement(OperationType.Update)).Result;
+
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
             }
 
             if (!ModelState.IsValid)
@@ -103,6 +125,13 @@ namespace MeetupAPI.Controllers
             if (meetup == null)
             {
                 return NotFound();
+            }
+
+            var authorizationResult = _authorizationService.AuthorizeAsync(User, meetup, new ResourceOperationRequirement(OperationType.Delete)).Result;
+
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
             }
 
             _meetupContext.Meetups.Remove(meetup);
