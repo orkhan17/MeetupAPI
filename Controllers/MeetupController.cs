@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using MeetupAPI.Authorization;
+using MeetupAPI.Controllers.Filters;
 using MeetupAPI.DTOs;
 using MeetupAPI.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +18,7 @@ namespace MeetupAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [ServiceFilter(typeof(TimeTrackFilter))]
     public class MeetupController : ControllerBase
     {
         private readonly MeetupContext _meetupContext;
@@ -32,6 +34,7 @@ namespace MeetupAPI.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        [NationalityFilter("German, Russian")]
         public ActionResult<List<MeetupDetailsDto>> Get()
         {
             var meetups = _meetupContext.Meetups
@@ -43,6 +46,7 @@ namespace MeetupAPI.Controllers
         }
 
         [HttpGet("{name}")]
+        [NationalityFilter("English")]
         //[Authorize(Policy = "HasNationality")]
         [Authorize(Policy = "AtLeast18")]
         public ActionResult<MeetupDetailsDto> Get(string name)

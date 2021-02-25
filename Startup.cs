@@ -7,6 +7,7 @@ using AutoMapper;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MeetupAPI.Authorization;
+using MeetupAPI.Controllers.Filters;
 using MeetupAPI.DTOs;
 using MeetupAPI.Entities;
 using MeetupAPI.Identity;
@@ -79,6 +80,8 @@ namespace MeetupAPI
 
             services.AddScoped<IAuthorizationHandler, MinimumAgeHandler>();
             services.AddScoped<IAuthorizationHandler, MeetupResourceOperationHandler>();
+
+            services.AddScoped<TimeTrackFilter>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
